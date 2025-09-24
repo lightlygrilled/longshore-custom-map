@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom Homes Map</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<section class="map-section" aria-label="Available Homes Map">
+  <div class="map-layout">
+    <aside class="map-sidebar" aria-label="Available Homes" data-map-list>
+      <!--
+        In Webflow, bind your CMS Collection List element and add attributes:
+        - Add `data-map-list` to the Collection List wrapper
+        - For each Collection Item, add `data-map-item` to its wrapper
+        Inside each item, add elements with these attributes bound to CMS fields:
+        - data-map-name  → Project Name
+        - data-map-address → Full Address
+        - data-map-img → <img> with src bound to Image field
+        - data-map-link → <a> with href bound to Directions link
+
+        Example static structure below is only for local preview; Webflow will output similar DOM.
+      -->
+      <div class="map-item" data-map-item data-map-lat="34.409586" data-map-lng="-77.626565">
+        <img class="map-item-thumb" data-map-img src="https://via.placeholder.com/120x80?text=Anchor" alt="Anchor">
+        <div class="map-item-info">
+          <div class="map-item-name" data-map-name>Anchor</div>
+          <div class="map-item-address" data-map-address>124 West Scarborough Ct Hampstead NC 28443</div>
+          <a class="map-item-link" data-map-link href="https://www.google.com/maps/dir/?api=1&destination=124+West+Scarborough+Ct+Hampstead+NC+28443" target="_blank" rel="noopener">Directions</a>
+        </div>
+      </div>
+
+      <div class="map-item" data-map-item data-map-lat="34.410163" data-map-lng="-77.623220">
+        <img class="map-item-thumb" data-map-img src="https://via.placeholder.com/120x80?text=Casa+Bianca" alt="Casa Bianca">
+        <div class="map-item-info">
+          <div class="map-item-name" data-map-name>Casa Bianca</div>
+          <div class="map-item-address" data-map-address>122 West Colonnade Dr Hampstead NC 28443</div>
+          <a class="map-item-link" data-map-link href="https://www.google.com/maps/dir/?api=1&destination=122+West+Colonnade+Dr+Hampstead+NC+28443" target="_blank" rel="noopener">Directions</a>
+        </div>
+      </div>
+      <!-- In Webflow, your CMS will render items with these attributes -->
+    </aside>
+
+    <div id="map" class="map-canvas" role="region" aria-label="Map of available homes"></div>
+  </div>
+</section>
+
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script src="map.js"></script>
+</body>
+</html>
+
