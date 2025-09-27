@@ -69,6 +69,7 @@ function initMap(){
     style: 'mapbox://styles/mapbox/streets-v12',
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
+    cooperativeGestures: true, // Requires two-finger pan/zoom, allows single-finger scroll
   });
   map.addControl(new mapboxgl.NavigationControl({showCompass:false}), 'top-right');
   return map;
@@ -109,12 +110,6 @@ async function render(){
 
   const bounds = new mapboxgl.LngLatBounds();
   const markers = new Map();
-  let current = { popup: null, itemEl: null };
-
-  function closeCurrent(){
-    if(current.popup){ current.popup.remove(); current.popup = null; }
-    if(current.itemEl){ current.itemEl.classList.remove('active'); current.itemEl = null; }
-  }
 
   for(const item of items){
     let coords = null;
@@ -125,7 +120,7 @@ async function render(){
     }
     if(!coords) continue;
 
-    const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
+    const popup = new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
       .setHTML(createPopupHTML({
         name: item.name,
         address: item.address,
@@ -135,10 +130,10 @@ async function render(){
 
     const el = document.createElement('div');
     el.className = 'marker-dot';
-    el.style.width = '14px';
-    el.style.height = '14px';
+    el.style.width = '24px';
+    el.style.height = '24px';
     el.style.borderRadius = '50%';
-    el.style.background = '#0ea5e9';
+    el.style.background = 'black';
     el.style.boxShadow = '0 0 0 2px #fff, 0 2px 8px rgba(0,0,0,.25)';
     el.style.cursor = 'pointer';
 
@@ -146,18 +141,46 @@ async function render(){
       .setLngLat([coords.lng, coords.lat])
       .addTo(map);
 
-    function open(){
-      if(current.popup === popup) return; // already open
-      closeCurrent();
+    // Hover behavior with popup hover detection
+    let hoverTimeout = null;
+    
+    function showPopup(){
+      if(hoverTimeout) clearTimeout(hoverTimeout);
       popup.addTo(map).setLngLat([coords.lng, coords.lat]);
       item.el.classList.add('active');
-      current.popup = popup;
-      current.itemEl = item.el;
-      map.flyTo({ center: [coords.lng, coords.lat], zoom: Math.max(map.getZoom(), 12), essential: true });
+    }
+    
+    function hidePopup(){
+      if(hoverTimeout) clearTimeout(hoverTimeout);
+      hoverTimeout = setTimeout(() => {
+        popup.remove();
+        item.el.classList.remove('active');
+      }, 100);
+    }
+    
+    function cancelHide(){
+      if(hoverTimeout) clearTimeout(hoverTimeout);
     }
 
-    el.addEventListener('click', open);
-    item.el.addEventListener('click', open);
+    // Marker hover
+    el.addEventListener('mouseenter', showPopup);
+    el.addEventListener('mouseleave', hidePopup);
+
+    // Sidebar hover
+    item.el.addEventListener('mouseenter', ()=>{
+      showPopup();
+      map.flyTo({ center: [coords.lng, coords.lat], zoom: Math.max(map.getZoom(), 12), essential: true });
+    });
+    item.el.addEventListener('mouseleave', hidePopup);
+
+    // Popup hover detection
+    popup.on('open', () => {
+      const popupEl = popup.getElement();
+      if(popupEl){
+        popupEl.addEventListener('mouseenter', cancelHide);
+        popupEl.addEventListener('mouseleave', hidePopup);
+      }
+    });
 
     markers.set(item.id, { marker, popup, item, coords });
     bounds.extend([coords.lng, coords.lat]);
